@@ -85,6 +85,9 @@ class Updater(object):
     def run(self):
         """Update the subreddit if a new post is available."""
         latest_post = self._get_latest_post()
+        if latest_post is None:
+            return
+
         chapter_number = int(latest_post.title.partition(" - ")[0])
         new_post_count = len(self.links) - chapter_number
 
