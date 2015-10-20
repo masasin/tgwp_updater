@@ -1,0 +1,5 @@
+Updates the /r/TGWP subreddit with a link to Ryuugi's latest post within five minutes of him posting it.
+
+This can be set up in cron as follows:
+
+    */5 13-14 * * * tgwp_updater
