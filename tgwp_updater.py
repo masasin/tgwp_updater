@@ -1,6 +1,7 @@
 from collections import namedtuple
 import json
 import logging
+import logging.handlers
 import sys
 import time
 
@@ -136,14 +137,15 @@ def main():
     
 
 if __name__ == "__main__":
-    format_string = "%(name)-30s : %(levelname)-8s  %(message)s"
+    format_string = "%(name)-40s : %(levelname)-8s  %(message)s"
     date_format = "%Y-%m-%d %H:%M:%S "
 
     logging.basicConfig(level=logging.DEBUG,
                         format="%(asctime)s " + format_string,
                         datefmt=date_format,
-                        filename="test_log.log",
-                        filemode="a")
+                        filename=".tgwp_updater.log",
+                        filemode="a"
+                        )
 
     # Log important data to console
     console = logging.StreamHandler()
