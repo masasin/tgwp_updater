@@ -151,7 +151,7 @@ def main():
 
 
 if __name__ == "__main__":
-    format_string = "%(name)-40s : %(levelname)-8s  %(message)s"
+    format_string = "%(name)-12s : %(levelname)-8s  %(message)s"
     date_format = "%Y-%m-%d %H:%M:%S "
 
     # Log everything to file
@@ -159,8 +159,7 @@ if __name__ == "__main__":
                         format="%(asctime)s " + format_string,
                         datefmt=date_format,
                         filename=".tgwp_updater.log",
-                        filemode="a"
-                        )
+                        filemode="a")
 
     # Log important data to console
     console = logging.StreamHandler()
@@ -168,6 +167,9 @@ if __name__ == "__main__":
     console.setFormatter(logging.Formatter(format_string))
     logging.getLogger("").addHandler(console)
 
-    logger = logging.getLogger(__name__)
+    # Hide info logs from requests
+    logging.getLogger("urllib3").setLevel(logging.WARNING)
+
+    logger = logging.getLogger("tgwp_updater")
 
     sys.exit(main())
