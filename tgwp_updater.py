@@ -1,7 +1,16 @@
+#!/usr/bin/env python
+# (C) 2015  Jean Nassar
+# Released under the GNU General Public License, version 3
+"""
+Updates /r/tgwp with Ryuugi's TGWP
+
+Updates the /r/tgwp subreddit with the latest chapter from Ryuugi's The Games
+We Play, from Spacebattles forums.
+
+"""
 from collections import namedtuple
 import json
 import logging
-import logging.handlers
 import sys
 import time
 
@@ -140,6 +149,7 @@ if __name__ == "__main__":
     format_string = "%(name)-40s : %(levelname)-8s  %(message)s"
     date_format = "%Y-%m-%d %H:%M:%S "
 
+    # Log everything to file
     logging.basicConfig(level=logging.DEBUG,
                         format="%(asctime)s " + format_string,
                         datefmt=date_format,
