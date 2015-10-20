@@ -107,10 +107,19 @@ class Updater(object):
             A list of Chapter namedtuples containing all chapter names and their
             urls.
 
+        Raises
+        ------
+        RuntimeError
+            If the forum page cannot be downloaded properly.
+
         """
         logger.info("Getting story links")
         logger.debug("Downloading forum page")
-        post = BeautifulSoup(requests.get(self.url).text).html.article
+        forum_page = requests.get(self.url)
+        if forum_page.status_code != 200:
+            raise RuntimeError("Cannot access the forum page.")
+
+        post = BeautifulSoup(forum_page.text).html.article
         post_title = post.div.text.splitlines()[1]  # Title of article chapter
         logger.debug("Obtained post")
 
