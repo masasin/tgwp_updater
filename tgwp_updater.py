@@ -33,8 +33,31 @@ with open("settings.json", "r") as settings_file:
 
 
 class Updater(object):
-    def __init__(self, url=TGWP_INDEX_URL, settings=SETTINGS, subs=SUBS,
-                 formatter=TITLE_FORMAT):
+    """
+    Class for the  updater methods.
+
+    Parameters
+    ----------
+    url : str
+        The URL of the main forum post.
+    subs : list of str
+        Names of the subreddits to submit to.
+    formatter : str
+        A template for generating consistent post titles.
+    settings : dict
+        A dict of settings for the updater. Necessary variables are:
+
+        - user_agent
+        - client_id
+        - client_secret
+        - redirect_uri
+        - updater_access_token
+        - updater_refresh_token
+        - scopes
+
+    """
+    def __init__(self, url=TGWP_INDEX_URL, subs=SUBS,
+                 formatter=TITLE_FORMAT, settings=SETTINGS):
         logger.debug("Initializing updater")
         self.url = url
         self.settings = settings
@@ -90,7 +113,7 @@ class Updater(object):
         session.set_oauth_app_info(self.settings["client_id"],
                                    self.settings["client_secret"],
                                    self.settings["redirect_uri"])
-        session.set_access_credentials(self.settings["scope"],
+        session.set_access_credentials(self.settings["scopes"],
                                        self.settings["updater_access_token"],
                                        self.settings["updater_refresh_token"])
 
