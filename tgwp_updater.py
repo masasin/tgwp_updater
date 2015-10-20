@@ -67,6 +67,15 @@ class Updater(object):
         self.links = self._get_story_links()
 
     def loop(self, interval=10):
+        """
+        Continuously loop through the script.
+
+        Parameters
+        ----------
+        interval : int
+            The time, in minutes, between checks.
+
+        """
         while True:
             self.links = self._get_story_links()
             self.run()
@@ -74,6 +83,7 @@ class Updater(object):
                 time.sleep(interval*60)
 
     def run(self):
+        """Update the subreddit if a new post is available."""
         latest_post = self._get_latest_post()
         chapter_number = int(latest_post.title.partition(" - ")[0])
         new_post_count = len(self.links) - chapter_number
@@ -85,29 +95,50 @@ class Updater(object):
             logger.info("No new chapters...")
 
     def _get_story_links(self):
+        """
+        Get all chapter links.
+
+        Returns
+        -------
+        links : list of Chapter
+            A list of Chapter namedtuples containing all chapter names and their
+            urls.
+
+        """
         logger.info("Getting story links")
         logger.debug("Downloading forum page")
         post = BeautifulSoup(requests.get(self.url).text).html.article
-        post_title = post.div.text.splitlines()[1]
+        post_title = post.div.text.splitlines()[1]  # Title of article chapter
         logger.debug("Obtained post")
 
         logger.debug("Extracting links")
         links = []
         link = post.a
-        while True:
-            if link.text == ("On those who live to see old age in a profession "
+        while link.text != ("On those who live to see old age in a profession "
                              "where most die young."):
-                break
             links.append(Chapter(link.text, link.get("href")))
+
+            # If the main post contains a story, and the story is not linked,
+            # check to ensure no name collisions, and add self as a link.
             if link.next_sibling.next_sibling.strip():
                 if post_title == link.text:
                     post_title += " (Cont.)"
                 links.append(Chapter(post_title, TGWP_INDEX_URL))
+
             link = link.find_next("a")
         logging.debug("Links extracted")
         return links
 
     def _login(self):
+        """
+        Login to Reddit using OAUTH2.
+
+        Returns
+        -------
+        session : praw.Reddit
+            A Reddit session
+
+        """
         logger.info("Logging into reddit")
         session = praw.Reddit(user_agent=self.settings["user_agent"])
         session.set_oauth_app_info(self.settings["client_id"],
@@ -120,6 +151,14 @@ class Updater(object):
         return session
 
     def _get_latest_post(self):
+        """
+        Get the latest TGWP submission from /r/tgwp.
+
+        Returns
+        -------
+        post : praw.objects.Submission
+
+        """
         logger.info("Getting latest reddit post")
         for post in self.session.get_subreddit("tgwp").get_new():
             if post.author.name in UPLOADERS:
@@ -134,6 +173,21 @@ class Updater(object):
                                       "Cannot get latest post")
 
     def _submit_post(self, subreddit, title, url):
+        """
+        Submit a link to a subreddit.
+
+        If another user is submitting, message `ADMIN`.
+
+        Parameters
+        ----------
+        subreddit : str
+            The subreddit to submit to.
+        title : str
+            The title of the post.
+        url : str
+            The URL of the link.
+
+        """
         post = self.session.submit(subreddit, title, url=url, resubmit=True)
         if self.session.user.name != ADMIN:
             message = "New post available! {title} at {url}".format(
@@ -141,6 +195,15 @@ class Updater(object):
             self.session.send_message(ADMIN, "TGWP Updated", message)
 
     def _update_latest_link(self, count):
+        """
+        Submit all links that have not yet been submitted.
+
+        Parameters
+        ----------
+        count : int
+            The number of links to submit.
+
+        """
         if count > 1:
             logger.info("Submitting {n} latest links".format(n=count))
         else:
@@ -156,11 +219,13 @@ class Updater(object):
 
                 try:
                     self._submit_post(sub, new_title, link.url)
+
                 except praw.errors.RateLimitExceeded:
                     logger.warning("Rate limit exceeded!")
-                    logger.debug("Waiting 10 minutes to resubmit.")
+                    logger.debug("Waiting ten minutes to resubmit.")
                     time.sleep(10*60)
                     url = self._get_latest_post().url
+
                     if url == link.url:
                         logger.debug("Already submitted.")
                     else:
@@ -169,6 +234,7 @@ class Updater(object):
 
 
 def main():
+    """Main entry point for script."""
     updater = Updater()
     updater.run()
 
