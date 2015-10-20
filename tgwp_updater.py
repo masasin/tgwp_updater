@@ -143,7 +143,7 @@ class Updater(object):
 def main():
     updater = Updater()
     updater.run()
-    
+
 
 if __name__ == "__main__":
     format_string = "%(name)-40s : %(levelname)-8s  %(message)s"
