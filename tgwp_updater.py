@@ -61,7 +61,6 @@ class Updater(object):
         else:
             logger.info("No new chapters...")
 
-
     def _get_story_links(self):
         logger.info("Getting story links")
         logger.debug("Downloading forum page")
@@ -111,6 +110,13 @@ class Updater(object):
                                       "TGWP_Updater problem",
                                       "Cannot get latest post")
 
+    def _submit_post(self, subreddit, title, url):
+        post = self.session.submit(subreddit, title, url=url, resubmit=True)
+        if self.session.user.name != ADMIN:
+            message = "New post available! {title} at {url}".format(
+                title=title, url=post.short_link)
+            self.session.send_message(ADMIN, "TGWP Updated", message)
+
     def _update_latest_link(self, count):
         if count > 1:
             logger.info("Submitting {n} latest links".format(n=count))
@@ -122,14 +128,11 @@ class Updater(object):
             for i, link in zip(reversed(range(count)), new_chapters):
                 logger.debug("Submitting {title} to {sub}"
                              .format(title=link.title, sub=sub))
-                submission = {"subreddit": sub,
-                              "title": self.formatter
-                                  .format(i=len(self.links) - i,
-                                          title=link.title),
-                              "url": link.url,
-                              "resubmit": True}
+                new_title = self.formatter.format(i=len(self.links) - i,
+                                                  title=link.title)
+
                 try:
-                    self.session.submit(**submission)
+                    self._submit_post(sub, new_title, link.url)
                 except praw.errors.RateLimitExceeded:
                     logger.warning("Rate limit exceeded!")
                     logger.debug("Waiting 10 minutes to resubmit.")
@@ -139,7 +142,7 @@ class Updater(object):
                         logger.debug("Already submitted.")
                     else:
                         logger.debug("Submitting now.")
-                        self.session.submit(**submission)
+                        self._submit_post(sub, new_title, link.url)
 
 
 def main():
