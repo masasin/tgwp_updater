@@ -24,6 +24,8 @@ Chapter = namedtuple("Chapter", "title url")
 TGWP_INDEX_URL = ("https://forums.spacebattles.com/threads/"
                   "rwby-the-gamer-the-games-we-play-disk-five.341621/")
 SUBS = ["TGWP"]
+ADMIN = "masasin"
+UPLOADERS = ["masasin", "TGWP_Updater"]
 TITLE_FORMAT = "{i} - {title}"
 
 with open("settings.json", "r") as settings_file:
@@ -98,14 +100,14 @@ class Updater(object):
     def _get_latest_post(self):
         logger.info("Getting latest reddit post")
         for post in self.session.get_subreddit("tgwp").get_new():
-            if post.author.name in ("masasin", "TGWP_Updater"):
+            if post.author.name in UPLOADERS:
                 logger.debug("Post found")
                 return post
             else:
                 continue
         else:
             logger.critical("Latest post was not found! Aborting!")
-            self.session.send_message("masasin",
+            self.session.send_message(ADMIN,
                                       "TGWP_Updater problem",
                                       "Cannot get latest post")
 
