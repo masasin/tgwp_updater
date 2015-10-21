@@ -1,7 +1,7 @@
 from unittest import mock
 
-import pytest
 import praw
+import pytest
 
 from tgwp_updater import (TGWP_INDEX_URL, SUBS, TITLE_FORMAT, SETTINGS,
                           TgwpError, Updater)
@@ -34,6 +34,8 @@ class TestStartup(object):
     @mock.patch.object(praw.Reddit, "set_oauth_app_info", autospec=True)
     def test_login(self, mock_set_oauth, mock_set_creds, mock_get_links):
         updater = Updater()
+        assert updater.session.http.headers["User-Agent"].startswith(
+            SETTINGS["user_agent"])
         mock_set_oauth.assert_called_once_with(updater.session,
                                                SETTINGS["client_id"],
                                                SETTINGS["client_secret"],
@@ -46,7 +48,7 @@ class TestStartup(object):
         )
 
     @mock.patch.object(Updater, "_login", autospec=True)
-    @mock.patch("tgwp_updater.requests")
+    @mock.patch("tgwp_updater.requests", autospec=True)
     def test_getting_bad_link(self, mock_requests, mock_login):
         mock_requests.get.return_value.status_code = 404
         with pytest.raises(TgwpError):
