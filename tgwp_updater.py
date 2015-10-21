@@ -168,7 +168,7 @@ class Updater(object):
                 links.append(Chapter(post_title, TGWP_INDEX_URL))
 
             link = link.find_next("a")
-        logging.debug("Links extracted")
+        logger.debug("Links extracted")
         return links
 
     def _login(self):
