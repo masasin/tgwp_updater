@@ -53,6 +53,10 @@ with open("settings.json", "r") as settings_file:
     SETTINGS = json.load(settings_file)
 
 
+class TgwpError(Exception):
+    pass
+
+
 class Updater(object):
     """
     Class for the  updater methods.
@@ -130,7 +134,7 @@ class Updater(object):
 
         Raises
         ------
-        RuntimeError
+        TgwpError
             If the forum page cannot be downloaded properly.
 
         """
@@ -138,7 +142,7 @@ class Updater(object):
         logger.debug("Downloading forum page")
         forum_page = requests.get(self.url)
         if forum_page.status_code != 200:
-            raise RuntimeError("Cannot access the forum page.")
+            raise TgwpError("Cannot access the forum page.")
 
         post = BeautifulSoup(forum_page.text).html.article
         post_title = post.div.text.splitlines()[1]  # Title of article chapter
@@ -148,7 +152,7 @@ class Updater(object):
         links = []
         link = post.a
         while link.text != ("On those who live to see old age in a profession "
-                             "where most die young."):
+                            "where most die young."):
             links.append(Chapter(link.text, link.get("href")))
 
             # If the main post contains a story, and the story is not linked,
@@ -173,7 +177,7 @@ class Updater(object):
 
         """
         logger.info("Logging into reddit")
-        session = praw.Reddit(user_agent=self.settings["user_agent"])
+        session = praw.Reddit(self.settings["user_agent"])
         session.set_oauth_app_info(self.settings["client_id"],
                                    self.settings["client_secret"],
                                    self.settings["redirect_uri"])
