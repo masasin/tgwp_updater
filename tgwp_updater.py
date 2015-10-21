@@ -26,7 +26,7 @@ date_format = "%Y-%m-%d %H:%M:%S "
 logging.basicConfig(level=logging.DEBUG,
                     format="%(asctime)s " + format_string,
                     datefmt=date_format,
-                    filename=".tgwp_updater.log",
+                    filename="/home/masasin/.logs/tgwp_updater.log",
                     filemode="a")
 
 # Log important data to console
@@ -49,8 +49,13 @@ ADMIN = "masasin"
 UPLOADERS = ["masasin", "TGWP_Updater"]
 TITLE_FORMAT = "{i} - {title}"
 
-with open("settings.json", "r") as settings_file:
-    SETTINGS = json.load(settings_file)
+try:
+    with open("/home/masasin/documents/python/tgwp/settings.json",
+            "r") as settings_file:
+        SETTINGS = json.load(settings_file)
+except FileNotFoundError:
+    logger.critical("Settings file not found!")
+    raise
 
 
 class TgwpError(Exception):
