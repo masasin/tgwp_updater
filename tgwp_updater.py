@@ -11,6 +11,7 @@ We Play, from Spacebattles forums.
 from collections import namedtuple
 import json
 import logging
+import os
 import sys
 import time
 
@@ -19,6 +20,10 @@ import praw
 import requests
 
 
+HOME = os.getenv("USER_HOME")
+if not HOME:
+    HOME = "/tmp"
+
 format_string = "%(name)-12s : %(levelname)-8s  %(message)s"
 date_format = "%Y-%m-%d %H:%M:%S "
 
@@ -26,7 +31,7 @@ date_format = "%Y-%m-%d %H:%M:%S "
 logging.basicConfig(level=logging.DEBUG,
                     format="%(asctime)s " + format_string,
                     datefmt=date_format,
-                    filename="/home/masasin/.logs/tgwp_updater.log",
+                    filename="{home}/.logs/tgwp_updater.log".format(home=HOME),
                     filemode="a")
 
 # Log important data to console
@@ -50,8 +55,7 @@ UPLOADERS = ["masasin", "TGWP_Updater"]
 TITLE_FORMAT = "{i} - {title}"
 
 try:
-    with open("/home/masasin/documents/python/tgwp/settings.json",
-            "r") as settings_file:
+    with open("settings.json", "r") as settings_file:
         SETTINGS = json.load(settings_file)
 except FileNotFoundError:
     logger.critical("Settings file not found!")
