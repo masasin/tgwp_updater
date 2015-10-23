@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # (C) 2015  Jean Nassar
 # Released under the GNU General Public License, version 3
 """
@@ -20,13 +20,16 @@ import praw
 import requests
 
 
+# Set up logger
 _HOME = os.getenv("USER_HOME")
-_SETTINGS_PATH = os.path.join(_HOME,
-                              os.getenv("TGWP_PATH"),
-                              "settings.json")
-
 if not _HOME:
     _HOME = "/tmp"
+
+_log_dir = "{home}/.logs".format(home=_HOME)
+_log_file = "{log_dir}/tgwp_updater.log".format(log_dir=_log_dir)
+
+if not os.path.exists(_log_dir):
+    os.makedirs(_log_dir)
 
 format_string = "%(name)-12s : %(levelname)-8s  %(message)s"
 date_format = "%Y-%m-%d %H:%M:%S "
@@ -35,7 +38,7 @@ date_format = "%Y-%m-%d %H:%M:%S "
 logging.basicConfig(level=logging.DEBUG,
                     format="%(asctime)s " + format_string,
                     datefmt=date_format,
-                    filename="{home}/.logs/tgwp_updater.log".format(home=_HOME),
+                    filename=_log_file,
                     filemode="a")
 
 # Log important data to console
@@ -50,14 +53,9 @@ logging.getLogger("requests").setLevel(logging.WARNING)
 
 logger = logging.getLogger("tgwp_updater")
 
-Chapter = namedtuple("Chapter", "title url")
 
-TGWP_INDEX_URL = ("https://forums.spacebattles.com/threads/"
-                  "rwby-the-gamer-the-games-we-play-disk-five.341621/")
-SUBS = ["TGWP"]
-ADMIN = "masasin"
-UPLOADERS = ["masasin", "TGWP_Updater"]
-TITLE_FORMAT = "{i} - {title}"
+# Load settings
+_SETTINGS_PATH = os.path.join(os.path.dirname(__file__), "settings.json")
 
 try:
     with open(_SETTINGS_PATH, "r") as settings_file:
@@ -65,6 +63,9 @@ try:
 except FileNotFoundError:
     logger.critical("Settings file not found!")
     raise
+
+
+Chapter = namedtuple("Chapter", "title url")
 
 
 class TgwpError(Exception):
@@ -81,7 +82,7 @@ class Updater(object):
         The URL of the main forum post.
     subs : list of str
         Names of the subreddits to submit to.
-    formatter : str
+    template : str
         A template for generating consistent post titles.
     settings : dict
         A dict of settings for the updater. Necessary variables are:
@@ -95,13 +96,13 @@ class Updater(object):
         - scopes
 
     """
-    def __init__(self, url=TGWP_INDEX_URL, subs=SUBS,
-                 formatter=TITLE_FORMAT, settings=SETTINGS):
+    def __init__(self, url=SETTINGS["tgwp_index_url"], subs=SETTINGS["subs"],
+                 template=SETTINGS["title_template"], settings=SETTINGS):
         logger.debug("Initializing updater")
         self.url = url
         self.settings = settings
         self.subs = subs
-        self.formatter = formatter
+        self.template = template
         self.session = self._login()
         self.links = self._get_story_links()
 
@@ -174,7 +175,7 @@ class Updater(object):
             if link.next_sibling.next_sibling.strip():
                 if post_title == link.text:
                     post_title += " (Cont.)"
-                links.append(Chapter(post_title, TGWP_INDEX_URL))
+                links.append(Chapter(post_title, SETTINGS["tgwp_index_url"]))
 
             link = link.find_next("a")
         logger.debug("Links extracted")
@@ -214,14 +215,14 @@ class Updater(object):
         """
         logger.info("Getting latest reddit post")
         for post in self.session.get_subreddit("tgwp").get_new():
-            if post.author.name in UPLOADERS:
+            if post.author.name in SETTINGS["uploaders"]:
                 logger.debug("Post found")
                 return post
             else:
                 continue
         else:
             logger.critical("Latest post was not found! Aborting!")
-            self.session.send_message(ADMIN,
+            self.session.send_message(SETTINGS["admin"],
                                       "TGWP_Updater problem",
                                       "Cannot get latest post")
 
@@ -229,7 +230,7 @@ class Updater(object):
         """
         Submit a link to a subreddit.
 
-        If another user is submitting, message `ADMIN`.
+        If another user is submitting, message the administrator.
 
         Parameters
         ----------
@@ -245,7 +246,7 @@ class Updater(object):
         if self.session.user.name != ADMIN:
             message = "New post available! {title} at {url}".format(
                 title=title, url=post.short_link)
-            self.session.send_message(ADMIN, "TGWP Updated", message)
+            self.session.send_message(SETTINGS["admin"], "TGWP Update", message)
 
     def _update_latest_link(self, count):
         """
@@ -267,8 +268,8 @@ class Updater(object):
             for i, link in zip(reversed(range(count)), new_chapters):
                 logger.debug("Submitting {title} to {sub}"
                              .format(title=link.title, sub=sub))
-                new_title = self.formatter.format(i=len(self.links) - i,
-                                                  title=link.title)
+                new_title = self.template.format(i=len(self.links) - i,
+                                                 title=link.title)
 
                 try:
                     self._submit_post(sub, new_title, link.url)
