@@ -20,9 +20,13 @@ import praw
 import requests
 
 
-HOME = os.getenv("USER_HOME")
-if not HOME:
-    HOME = "/tmp"
+_HOME = os.getenv("USER_HOME")
+_SETTINGS_PATH = os.path.join(_HOME,
+                              os.getenv("TGWP_PATH"),
+                              "settings.json")
+
+if not _HOME:
+    _HOME = "/tmp"
 
 format_string = "%(name)-12s : %(levelname)-8s  %(message)s"
 date_format = "%Y-%m-%d %H:%M:%S "
@@ -31,7 +35,7 @@ date_format = "%Y-%m-%d %H:%M:%S "
 logging.basicConfig(level=logging.DEBUG,
                     format="%(asctime)s " + format_string,
                     datefmt=date_format,
-                    filename="{home}/.logs/tgwp_updater.log".format(home=HOME),
+                    filename="{home}/.logs/tgwp_updater.log".format(home=_HOME),
                     filemode="a")
 
 # Log important data to console
@@ -42,6 +46,7 @@ logging.getLogger("").addHandler(console)
 
 # Hide info logs from requests
 logging.getLogger("urllib3").setLevel(logging.WARNING)
+logging.getLogger("requests").setLevel(logging.WARNING)
 
 logger = logging.getLogger("tgwp_updater")
 
@@ -55,7 +60,7 @@ UPLOADERS = ["masasin", "TGWP_Updater"]
 TITLE_FORMAT = "{i} - {title}"
 
 try:
-    with open("settings.json", "r") as settings_file:
+    with open(_SETTINGS_PATH, "r") as settings_file:
         SETTINGS = json.load(settings_file)
 except FileNotFoundError:
     logger.critical("Settings file not found!")

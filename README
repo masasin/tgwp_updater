@@ -2,5 +2,7 @@ Updates the /r/TGWP subreddit with a link to Ryuugi's latest post within five mi
 
 This can be set up in cron as follows:
 
-    $USER_HOME = "/home/yourusername"
-    */5 13-14 * * * cd $(USER_HOME)/path/to/tgwp && ./tgwp_updater
+    USER_HOME = /home/yourusername
+    TGWP_PATH = /path/to/tgwp
+
+    */5 13-15 * * * $USER_HOME/$TGWP_PATH/tgwp_updater.py
