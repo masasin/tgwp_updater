@@ -3,11 +3,15 @@ from unittest import mock
 import praw
 import pytest
 
-from tgwp_updater import (TGWP_INDEX_URL, SUBS, TITLE_FORMAT, SETTINGS,
-                          TgwpError, Updater)
+from tgwp_updater import SETTINGS, TgwpError, Updater
 
 
 def test_settings_file():
+    assert "tgwp_index_url" in SETTINGS
+    assert "subs" in SETTINGS
+    assert "admin" in SETTINGS
+    assert "uploaders" in SETTINGS
+    assert "title_template" in SETTINGS
     assert "user_agent" in SETTINGS
     assert "client_id" in SETTINGS
     assert "client_secret" in SETTINGS
@@ -22,10 +26,10 @@ class TestStartup(object):
     @mock.patch.object(Updater, "_login", autospec=True)
     def test_initialization(self, mock_login, mock_get_story_links):
         updater = Updater()
-        assert updater.url == TGWP_INDEX_URL
+        assert updater.url == SETTINGS["tgwp_index_url"]
         assert updater.settings == SETTINGS
-        assert updater.subs == SUBS
-        assert updater.formatter == TITLE_FORMAT
+        assert updater.subs == SETTINGS["subs"]
+        assert updater.template == SETTINGS["title_template"]
         mock_login.assert_called_once_with(updater)
         mock_get_story_links.assert_called_once_with(updater)
 
