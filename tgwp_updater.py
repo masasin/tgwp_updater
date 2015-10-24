@@ -21,11 +21,8 @@ import requests
 
 
 # Set up logger
-_HOME = os.getenv("USER_HOME")
-if not _HOME:
-    _HOME = "/tmp"
-
-_log_dir = "{home}/.logs".format(home=_HOME)
+_home = os.getenv("USER_HOME", "/tmp")
+_log_dir = "{home}/.logs".format(home=_home)
 _log_file = "{log_dir}/tgwp_updater.log".format(log_dir=_log_dir)
 
 if not os.path.exists(_log_dir):
