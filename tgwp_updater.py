@@ -206,7 +206,7 @@ class Updater(object):
         """
         Get the latest TGWP submission from /r/tgwp.
 
-        If no submission can be found, message `ADMIN` for manual intervention.
+        If no submission can be found, message admin for manual intervention.
 
         Returns
         -------
