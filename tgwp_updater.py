@@ -100,7 +100,7 @@ class Updater(object):
         self.settings = settings
         self.subs = subs
         self.template = template
-        self.session = self._login()
+        self.session = self._authenticate()
         self.links = self._get_story_links()
 
     def loop(self, interval=10):
@@ -178,9 +178,9 @@ class Updater(object):
         logger.debug("Links extracted")
         return links
 
-    def _login(self):
+    def _authenticate(self):
         """
-        Login to Reddit using OAUTH2.
+        Authenticate to Reddit using OAUTH2.
 
         Returns
         -------
