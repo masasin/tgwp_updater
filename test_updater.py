@@ -23,20 +23,20 @@ def test_settings_file():
 
 class TestStartup(object):
     @mock.patch.object(Updater, "_get_story_links", autospec=True)
-    @mock.patch.object(Updater, "_login", autospec=True)
-    def test_initialization(self, mock_login, mock_get_story_links):
+    @mock.patch.object(Updater, "_authenticate", autospec=True)
+    def test_initialization(self, mock_authenticate, mock_get_story_links):
         updater = Updater()
         assert updater.url == SETTINGS["tgwp_index_url"]
         assert updater.settings == SETTINGS
         assert updater.subs == SETTINGS["subs"]
         assert updater.template == SETTINGS["title_template"]
-        mock_login.assert_called_once_with(updater)
+        mock_authenticate.assert_called_once_with(updater)
         mock_get_story_links.assert_called_once_with(updater)
 
     @mock.patch.object(Updater, "_get_story_links", autospec=True)
     @mock.patch.object(praw.Reddit, "set_access_credentials", autospec=True)
     @mock.patch.object(praw.Reddit, "set_oauth_app_info", autospec=True)
-    def test_login(self, mock_set_oauth, mock_set_creds, mock_get_links):
+    def test_authenticate(self, mock_set_oauth, mock_set_creds, mock_get_links):
         updater = Updater()
         assert updater.session.http.headers["User-Agent"].startswith(
             SETTINGS["user_agent"])
@@ -51,9 +51,9 @@ class TestStartup(object):
             SETTINGS["updater_refresh_token"]
         )
 
-    @mock.patch.object(Updater, "_login", autospec=True)
+    @mock.patch.object(Updater, "_authenticate", autospec=True)
     @mock.patch("tgwp_updater.requests", autospec=True)
-    def test_getting_bad_link(self, mock_requests, mock_login):
+    def test_getting_bad_link(self, mock_requests, mock_authenticate):
         mock_requests.get.return_value.status_code = 404
         with pytest.raises(TgwpError):
             Updater()
